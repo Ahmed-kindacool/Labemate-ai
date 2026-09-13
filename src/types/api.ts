@@ -28,6 +28,9 @@ export interface GenerateErrorResponse {
     | "EXECUTION_FAILED"
     | "REPORT_GENERATION_FAILED";
   message: string;
+  // Present only for INVALID_INPUT — lets the frontend highlight specific fields
+  // instead of showing one generic error banner.
+  fieldErrors?: Record<string, string[]>;
 }
 
 export type GenerateResponse = GenerateSuccessResponse | GenerateErrorResponse;

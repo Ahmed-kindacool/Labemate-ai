@@ -13,11 +13,13 @@ export type AppErrorCode =
  */
 export class AppError extends Error {
   readonly code: AppErrorCode;
+  readonly fieldErrors?: Record<string, string[]>;
 
-  constructor(code: AppErrorCode, message: string) {
+  constructor(code: AppErrorCode, message: string, fieldErrors?: Record<string, string[]>) {
     super(message);
     this.name = "AppError";
     this.code = code;
+    this.fieldErrors = fieldErrors;
   }
 }
 

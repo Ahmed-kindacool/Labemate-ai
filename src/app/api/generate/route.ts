@@ -26,7 +26,8 @@ export async function POST(req: NextRequest): Promise<NextResponse<GenerateRespo
     if (!parsedFields.success) {
       throw new AppError(
         "INVALID_INPUT",
-        parsedFields.error.issues.map((issue) => issue.message).join(" ")
+        "Please fix the highlighted fields.",
+        parsedFields.error.flatten().fieldErrors as Record<string, string[]>
       );
     }
 
@@ -50,7 +51,12 @@ export async function POST(req: NextRequest): Promise<NextResponse<GenerateRespo
   } catch (err) {
     if (isAppError(err)) {
       return NextResponse.json(
-        { status: "error", code: err.code, message: err.message },
+        {
+          status: "error",
+          code: err.code,
+          message: err.message,
+          ...(err.fieldErrors ? { fieldErrors: err.fieldErrors } : {}),
+        },
         { status: 400 }
       );
     }
