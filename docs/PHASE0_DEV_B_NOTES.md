@@ -2,23 +2,23 @@
 
 ## What's included here (Developer B tasks per PLAN.md §7)
 
-- **API structure** — `src/app/api/generate/route.ts`. Thin route handler: parses
+- **API structure** — `../src/app/api/generate/route.ts`. Thin route handler: parses
   `multipart/form-data`, validates it, delegates to `GenerationService`, returns a
   typed response. No pipeline logic lives in the route itself.
-- **Service-layer architecture** — `src/lib/generation/generation.service.ts`.
+- **Service-layer architecture** — `../src/lib/generation/generation.service.ts`.
   `GenerationService.generate()` is the single coordination point for the future
   pipeline (Parser → AI → Executor → Screenshot → Template → DOCX). Per PLAN.md
   Phase 1, it currently returns a **mock response** so Developer A can build the
   frontend against a stable contract before real stages exist.
-- **Zod configuration** — `src/lib/validation/generate-request.schema.ts`.
+- **Zod configuration** — `../src/lib/validation/generate-request.schema.ts`.
   `StudentInfoSchema` validates the six required form fields; `validateLabFile`
   checks file type (PDF/DOC/DOCX) and the 10MB size limit from PROJECT_SPEC.md §2.
-- **Request/response types** — `src/types/api.ts` (API contract) and
-  `src/types/lab.ts` (domain types: `ParsedLab`, `GeneratedLab`, `ExecutionResult`,
+- **Request/response types** — `../src/types/api.ts` (API contract) and
+  `../src/types/lab.ts` (domain types: `ParsedLab`, `GeneratedLab`, `ExecutionResult`,
   `University`, etc., matching the shapes in ARCHITECTURE.md / AI_AND_GENERATION.md).
-- **Environment variable structure** — `src/lib/env.ts` + `.env.example`.
+- **Environment variable structure** — `../src/lib/env.ts` + `../.env.example`.
   Zod-validated, fails fast on startup if config is missing/invalid.
-- **Error handling** — `src/lib/errors/app-error.ts`. A single `AppError` class
+- **Error handling** — `../src/lib/errors/app-error.ts`. A single `AppError` class
   carrying one of the friendly error codes from PROJECT_SPEC.md §7. The route
   catches it and never leaks stack traces/secrets/paths.
 - **Initial backend structure** — empty, commented `index.ts` stubs in
@@ -28,14 +28,14 @@
 ## Deliberately NOT included (Developer A scope per PLAN.md §7)
 
 - Next.js project scaffold (`create-next-app`, `next.config`)
-- TypeScript config (`tsconfig.json`)
+- TypeScript config (`../tsconfig.json`)
 - Tailwind CSS config
 - shadcn/ui setup
-- `src/app/page.tsx`, layout, and any `components/`
+- `../src/app/page.tsx`, layout, and any `components/`
 - Git repository initialization
 
 These files are written to slot into the Next.js project once Developer A creates
-it — drop `src/` and `.env.example` in as-is.
+it — drop `../src` and `../.env.example` in as-is.
 
 ## Needs "Together" agreement (PLAN.md §7, not decided unilaterally)
 
