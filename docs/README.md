@@ -52,17 +52,21 @@ The generated report must **not add the university name as ordinary text**. Univ
 - No microservices
 - No unnecessary enterprise infrastructure
 
-## Suggested stack
+## Stack
 
-- Next.js + TypeScript
-- App Router
-- Tailwind CSS
-- shadcn/ui
-- Zod
-- OpenAI API
-- DOCX generation library
-- Playwright for screenshots
-- Docker for isolated code execution
+> **Updated during migration** — this project started as a single Next.js
+> app and was migrated to a split frontend/backend. See
+> `../MIGRATION_NOTES.md` at the repo root for the full file-by-file
+> mapping from the old stack to this one.
+
+- **Frontend:** React + Vite + TypeScript, Tailwind CSS, shadcn/ui-style
+  primitives (Radix-based)
+- **Backend:** Python + FastAPI, Pydantic
+- OpenAI API (Phase 3, not yet wired)
+- DOCX generation library (Phase 7, not yet wired)
+- Playwright for screenshots (partially implemented — see
+  `backend/app/screenshots/`)
+- Docker for isolated code execution (Phase 4, not yet wired)
 
 The implementation should stay small and understandable.
 
@@ -90,44 +94,63 @@ Download
 
 ## Getting started
 
+Backend:
+
 ```bash
+cd backend
+python3 -m venv .venv
+.venv/bin/pip install -r requirements.txt
+cp .env.example .env
+.venv/bin/uvicorn app.main:app --reload --port 8000
+```
+
+Frontend:
+
+```bash
+cd frontend
 npm install
 npm run dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000).
+Open [http://localhost:5173](http://localhost:5173). The frontend talks to
+the backend at `http://localhost:8000` (see `FRONTEND_ORIGIN` in
+`backend/.env.example` for the CORS side of that).
 
-Copy `.env.example` to `.env.local` and fill in `OPENAI_API_KEY` before Phase 3
-(AI generation) is wired up — `src/lib/env.ts` validates it and fails fast if missing.
+Fill in `AI_API_KEY` in `backend/.env` before Phase 3 (AI generation) is
+wired up — `backend/app/core/config.py` reads it but nothing calls it yet.
 
 ## Project layout
 
 See `ARCHITECTURE.md` for the full rationale. Summary:
 
 ```text
-src/
-├── app/
-│   ├── page.tsx              # Landing / generation page
-│   ├── layout.tsx
-│   └── api/generate/route.ts # POST /api/generate (thin route handler)
-├── components/
-│   ├── ui/                   # shadcn/ui primitives
-│   ├── lab-form/             # Phase 1: student form, university select, upload
-│   └── generation/           # Phase 1+: progress states, result/download panel
-├── lib/
-│   ├── generation/           # GenerationService — coordinates the pipeline
-│   ├── lab/                  # Phase 2: lab parsers
-│   ├── ai/                   # Phase 3: AI service + provider adapter
-│   ├── execution/            # Phase 4: code executor strategies
-│   ├── screenshots/          # Phase 5: Playwright screenshot capture
-│   ├── documents/            # Phase 7: DOCX generator
-│   ├── templates/            # Phase 6: university template registry
-│   ├── validation/           # Zod schemas
-│   └── errors/                # AppError + friendly error codes
-└── types/                    # Shared domain + API types
+frontend/
+└── src/
+    ├── App.tsx                # Landing / generation page
+    ├── components/
+    │   ├── ui/                 # UI primitives
+    │   ├── lab-form/           # Phase 1: student form, university select, upload (stub)
+    │   └── generation/         # Phase 1+: progress states, result/download panel (stub)
+    └── types/                  # Shared domain + API types (TS side)
+
+backend/
+└── app/
+    ├── main.py                 # FastAPI app, CORS, router registration
+    ├── routes/                 # Thin route handlers (health, lab)
+    ├── schemas/                # Pydantic request/response/domain types
+    ├── services/                # generation_service.py — coordinates the pipeline
+    ├── validation/              # File type/size checks
+    ├── core/                    # Settings, AppError + exception handlers
+    ├── parsing/                 # Phase 2: lab parsers (stub)
+    ├── ai/                      # Phase 3: AI service + provider adapter (stub)
+    ├── execution/                # Phase 4: code executor strategies (interface only)
+    ├── screenshots/              # Phase 5: Playwright screenshot capture (implemented)
+    ├── documents/                 # Phase 7: DOCX generator (stub)
+    └── templates_registry/        # Phase 6: university template registry (stub)
 
 templates/                    # air/ · bahria/ · nust/ (added in Phase 6)
 ```
 
 See `PLAN.md` for the full phase-by-phase roadmap and `PHASE0_DEV_B_NOTES.md`
-for what Developer B's half of Phase 0 covers.
+for what Developer B's half of Phase 0 covers (both describe the pre-migration
+Next.js implementation, but the phase plan itself is unchanged).

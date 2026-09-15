@@ -53,3 +53,12 @@ form → upload → Generate → mock success → download-button flow works in
 the browser. That's the Phase 1 milestone in `PLAN.md`.
 
 ## Status: Dev B side complete, waiting on Dev A + joint integration.
+
+---
+
+**Post-migration note:** everything described above as "done" and
+"verified" has been ported to the FastAPI backend and re-verified there
+(same four test cases, same results) — see `../MIGRATION_NOTES.md` at the
+repo root. This file is left as the original historical record of the
+Next.js implementation rather than rewritten, since it's an accurate log of
+what Dev B actually built and tested at the time.

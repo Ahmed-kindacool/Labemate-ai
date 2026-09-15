@@ -1,32 +1,33 @@
-# API Contract — POST /api/generate
+# API Contract — POST /api/v1/labs/generate
 
-For Developer A to build the form/upload UI against. This is the "Together"
-deliverable for Phase 1 (PLAN.md §8).
+> **Updated during migration.** Path and field names changed from the
+> original Next.js version (`POST /api/generate`, camelCase fields) to
+> match the FastAPI backend. See `../MIGRATION_NOTES.md`.
 
 ## Request
 
 `multipart/form-data` with these fields:
 
-| Field            | Type   | Required | Notes                              |
-|------------------|--------|----------|-------------------------------------|
-| `studentName`    | string | yes      |                                      |
-| `rollNumber`     | string | yes      |                                      |
-| `university`     | string | yes      | one of `"air" \| "bahria" \| "nust"` |
-| `classSection`   | string | yes      |                                      |
-| `instructorName` | string | yes      |                                      |
-| `course`         | string | yes      |                                      |
-| `labFile`        | file   | yes      | PDF, DOC, or DOCX; max 10MB          |
+| Field             | Type   | Required | Notes                                |
+|-------------------|--------|----------|----------------------------------------|
+| `name`            | string | yes      |                                        |
+| `roll_number`     | string | yes      |                                        |
+| `university`      | string | yes      | one of `"air" \| "bahria" \| "nust"`  |
+| `class_section`   | string | yes      |                                        |
+| `instructor_name` | string | yes      |                                        |
+| `course`          | string | yes      |                                        |
+| `lab_file`        | file   | yes      | PDF, DOC, or DOCX; max 10MB           |
 
 ## Success response — `200`
 
 ```json
 {
   "status": "success",
-  "downloadUrl": "/mock/sample-report.docx"
+  "download_url": "/mock/sample-report.docx"
 }
 ```
 
-`downloadUrl` is a placeholder until Phase 7 (real DOCX generation). Build the
+`download_url` is a placeholder until Phase 7 (real DOCX generation). Build the
 download button against this shape now; the value becomes real later without
 changing the contract.
 
@@ -37,13 +38,13 @@ changing the contract.
   "status": "error",
   "code": "INVALID_INPUT",
   "message": "Please fix the highlighted fields.",
-  "fieldErrors": {
-    "studentName": ["Student name is required"]
+  "field_errors": {
+    "name": ["Value error, Name is required"]
   }
 }
 ```
 
-`fieldErrors` is only present when `code` is `INVALID_INPUT` — use it to
+`field_errors` is only present when `code` is `INVALID_INPUT` — use it to
 highlight individual form fields. For every other code, show `message` as a
 general error banner.
 
@@ -63,8 +64,14 @@ Only `INVALID_INPUT`, `UNSUPPORTED_FILE`, and `FILE_TOO_LARGE` are reachable
 right now — the rest exist in the type so the frontend's error-state UI can
 be built once and not revisited each phase.
 
+## Interactive docs
+
+FastAPI serves live, always-up-to-date request/response schemas at
+`http://localhost:8000/docs` once the backend is running — useful for
+double-checking this file hasn't drifted from the actual code.
+
 ## Open question for "Together" discussion
 
-Is `downloadUrl` the right final shape, or should the route stream the file
+Is `download_url` the right final shape, or should the route stream the file
 directly in the response once Phase 7 lands? Doesn't block Phase 1 — flagged
 for later.

@@ -1,8 +1,12 @@
 # Architecture
 
+> **Updated during migration** from a single Next.js app to a split
+> React (Vite) frontend + FastAPI backend. See `../MIGRATION_NOTES.md` for
+> the file-by-file mapping.
+
 ## Principle
 
-Use a **modular monolith**.
+Use a **modular monolith** — one backend service, no microservices.
 
 This project is intentionally small. Do not create microservices or a complicated backend.
 
@@ -11,10 +15,10 @@ The architecture should still have clean boundaries so the code is easy to maint
 ## High-level architecture
 
 ```text
-                Next.js UI
+              React (Vite) UI
                     │
-                    ▼
-              API /generate
+                    ▼   HTTP (multipart/form-data)
+        POST /api/v1/labs/generate
                     │
                     ▼
            GenerationService
@@ -37,47 +41,52 @@ The architecture should still have clean boundaries so the code is easy to maint
                  Download
 ```
 
-## Suggested folder structure
+## Folder structure
 
 ```text
-src/
-├── app/
-│   ├── page.tsx
-│   └── api/
-│       └── generate/
-│           └── route.ts
-│
-├── components/
-│   ├── lab-form/
-│   ├── generation/
-│   └── ui/
-│
-├── lib/
-│   ├── generation/
-│   │   └── generation.service.ts
-│   ├── lab/
-│   │   ├── lab-parser.service.ts
-│   │   └── parsers/
-│   ├── ai/
-│   │   ├── ai.service.ts
-│   │   └── prompts.ts
-│   ├── execution/
-│   │   ├── code-execution.service.ts
-│   │   └── executors/
-│   ├── screenshots/
-│   ├── documents/
-│   ├── templates/
-│   ├── validation/
-│   └── errors/
-│
-└── types/
+frontend/
+└── src/
+    ├── App.tsx
+    ├── components/
+    │   ├── ui/
+    │   ├── lab-form/
+    │   └── generation/
+    ├── lib/
+    │   └── utils.ts
+    └── types/
+
+backend/
+└── app/
+    ├── main.py
+    ├── routes/
+    │   ├── health.py
+    │   └── lab.py
+    ├── schemas/
+    │   ├── student.py
+    │   ├── generate.py
+    │   └── lab.py
+    ├── services/
+    │   └── generation_service.py
+    ├── validation/
+    │   └── lab_file.py
+    ├── core/
+    │   ├── config.py
+    │   └── errors.py
+    ├── domain/
+    │   └── university.py
+    ├── parsing/          # Phase 2
+    ├── ai/               # Phase 3
+    ├── execution/        # Phase 4
+    ├── screenshots/      # Phase 5
+    ├── templates_registry/ # Phase 6
+    └── documents/        # Phase 7
 
 templates/
 ├── air/
 ├── bahria/
 └── nust/
 
-tests/
+backend/tests/
 ```
 
 Adjust the exact structure when implementing if a simpler organization is clearly better.
@@ -90,7 +99,7 @@ Do not use patterns just for the sake of using patterns. Use them where they sol
 
 `GenerationService` coordinates the complete workflow.
 
-The API route should remain thin.
+The API route should remain thin — routing and validation only, no business logic.
 
 ### Strategy Pattern
 
@@ -104,7 +113,9 @@ CodeExecutor
 └── UnsupportedExecutor
 ```
 
-Start with Python.
+Start with Python. `CodeExecutor` is defined as an interface in
+`backend/app/execution/` — `PythonExecutor` currently raises "not
+implemented"; no sandbox exists yet.
 
 ### Adapter Pattern
 
@@ -112,11 +123,13 @@ Hide third-party services behind interfaces.
 
 For example:
 
-```ts
-interface AIProvider {
-  analyzeLab(input: string): Promise<LabAnalysis>;
-  generateSolutions(input: LabAnalysis): Promise<GeneratedLab>;
-}
+```python
+from abc import ABC, abstractmethod
+
+class AIProvider(ABC):
+    @abstractmethod
+    async def generate_solution(self, lab_content: str) -> dict:
+        ...
 ```
 
 This keeps the rest of the application independent from a specific AI SDK.
@@ -125,8 +138,11 @@ This keeps the rest of the application independent from a specific AI SDK.
 
 Use a simple registry for university templates:
 
-```ts
-type University = "air" | "bahria" | "nust";
+```python
+class University(str, Enum):
+    AIR = "air"
+    BAHRIA = "bahria"
+    NUST = "nust"
 ```
 
 Adding a university later should mainly involve adding its template/logo and registry entry.
